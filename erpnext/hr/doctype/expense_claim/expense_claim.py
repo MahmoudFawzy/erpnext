@@ -121,11 +121,20 @@ class ExpenseClaim(AccountsController):
 
 		# expense entries
 		for data in self.expenses:
+			# gl_entry.append(
+			# 	self.get_gl_dict({
+			# 		"account": "vat 5 % - D",
+			# 		"debit":  5,
+			# 		"debit_in_account_currency":   5,
+			# 		"against": self.employee,
+			# 		"cost_center": self.cost_center
+			# 	})
+			# )
 			gl_entry.append(
 				self.get_gl_dict({
 					"account": data.default_account,
-					"debit": data.sanctioned_amount,
-					"debit_in_account_currency": data.sanctioned_amount,
+					"debit": data.claim_amount,
+					"debit_in_account_currency": data.claim_amount,
 					"against": self.employee,
 					"cost_center": self.cost_center
 				})
