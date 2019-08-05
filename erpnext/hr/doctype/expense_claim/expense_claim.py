@@ -103,6 +103,9 @@ class ExpenseClaim(AccountsController):
 		self.validate_account_details()
 
 		payable_amount = flt(self.total_sanctioned_amount) - flt(self.total_advance_amount)
+		 
+ 		comp = frappe.get_doc("Company", self.company)
+		 
 
 		# payable entry
 		if payable_amount:
@@ -121,15 +124,16 @@ class ExpenseClaim(AccountsController):
 
 		# expense entries
 		for data in self.expenses:
-			# gl_entry.append(
-			# 	self.get_gl_dict({
-			# 		"account": "vat 5 % - D",
-			# 		"debit":  5,
-			# 		"debit_in_account_currency":   5,
-			# 		"against": self.employee,
-			# 		"cost_center": self.cost_center
-			# 	})
-			# )
+			if comp.expenses_vat_account: 
+				gl_entry.append(
+					self.get_gl_dict({
+						"account":	comp.expenses_vat_account , 
+						"debit":  data.sanctioned_amount -  data.claim_amount ,
+						"debit_in_account_currency":   data.sanctioned_amount -  data.claim_amount,
+						"against": self.employee,
+						"cost_center": self.cost_center
+					})
+				)
 			gl_entry.append(
 				self.get_gl_dict({
 					"account": data.default_account,
