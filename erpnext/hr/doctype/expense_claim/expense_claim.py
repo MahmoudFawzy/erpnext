@@ -104,7 +104,7 @@ class ExpenseClaim(AccountsController):
 
 		payable_amount = flt(self.total_sanctioned_amount) - flt(self.total_advance_amount)
 		 
- 		comp = frappe.get_doc("Company", self.company)
+		comp = frappe.get_doc("Company", self.company)
 		 
 
 		# payable entry
