@@ -39,14 +39,13 @@ frappe.ui.form.on('Payroll Entry', {
 			if (frm.custom_buttons) frm.clear_custom_buttons();
 			frm.events.add_context_buttons(frm);
 		}
-	},
-
+	}, 
 	get_employee_details: function (frm) {
 		return frappe.call({
 			doc: frm.doc,
 			method: 'fill_employee_details',
 			callback: function(r) {
-				if (r.docs[0].employees){
+				if (r.docs[0].employees ){
 					frm.save();
 					frm.refresh();
 					if(r.docs[0].validate_attendance){
@@ -245,7 +244,7 @@ const submit_salary_slip = function (frm) {
 
 let make_bank_entry = function (frm) {
 	var doc = frm.doc;
-	if (doc.company && doc.start_date && doc.end_date && doc.payment_account) {
+	if (doc.company && doc.start_date && doc.end_date ) {
 		return frappe.call({
 			doc: cur_frm.doc,
 			method: "make_payment_entry",
@@ -258,7 +257,7 @@ let make_bank_entry = function (frm) {
 			freeze_message: __("Creating Payment Entries......")
 		});
 	} else {
-		frappe.msgprint(__("Company, Payment Account, From Date and To Date is mandatory"));
+		frappe.msgprint(__("Company, From Date and To Date is mandatory"));
 	}
 };
 
