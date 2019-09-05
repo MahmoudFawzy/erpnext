@@ -344,15 +344,14 @@ class PayrollEntry(Document):
 				arr_acc.append({
 					"account": acc_pay ,
 					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
-					"user_remark" : _(' Employee: {0} ').format(salary_slip.employee_name)
-			
-				})	
+					"user_remark" : _('Net Salery Employee: {0} ').format(salary_slip.employee_name) 
+				})
 				
 			if len(arr_acc) > 0 : 
 				journal_entry = frappe.new_doc('Journal Entry')
 				journal_entry.voucher_type = 'Journal Entry'
 				journal_entry.company = self.company
-				journal_entry.user_remark = user_remark
+				journal_entry.user_remark = _('Salary for : \n ').format(user_remark) 
 				journal_entry.posting_date = self.posting_date
 				journal_entry.title = _('Salary from {0} to {1} ').format( self.start_date, self.end_date)
 				journal_entry.set("accounts",arr_acc)
