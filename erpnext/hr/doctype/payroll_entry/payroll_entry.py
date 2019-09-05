@@ -295,6 +295,7 @@ class PayrollEntry(Document):
 			""" % ('%s', '%s', cond), (self.start_date, self.end_date), as_list = True)
 
 		arr_acc = []
+		user_remark = ""
 	 
 		if salary_slip_name_list and len(salary_slip_name_list) > 0: 
 			for salary_slip_name in salary_slip_name_list:
@@ -309,9 +310,10 @@ class PayrollEntry(Document):
 						account = salary_component.accounts[0].default_account
 					arr_acc.append({
 						"account": account ,
-						"credit_in_account_currency": sal_detail.amount,
+						"debit_in_account_currency": sal_detail.amount,
 						"reference_type": self.doctype,
-						"reference_name": self.name 
+						"reference_name": self.name ,
+						"user_remark" : _(' Employee: {0} \n Earning: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
 					})
 					salary_total_earnings +=  sal_detail.amount 
 
@@ -323,9 +325,10 @@ class PayrollEntry(Document):
 						account = salary_component.accounts[0].default_account
 					arr_acc.append({
 						"account": account ,
-						"credit_in_account_currency": sal_detail.amount,
+						"debit_in_account_currency": sal_detail.amount,
 						"reference_type": self.doctype,
-						"reference_name": self.name 
+						"reference_name": self.name ,
+						"user_remark" : _(' Employee: {0} \n Deduction: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
 					})
 					salary_total_deductions +=  sal_detail.amount 
 				
@@ -336,23 +339,24 @@ class PayrollEntry(Document):
 						mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
 						if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
 							acc_pay = mode_of_payment.accounts[0].default_account
+						user_remark += employee_detail.employee_name + "\n"
 						
 				arr_acc.append({
 					"account": acc_pay ,
-					"debit_in_account_currency": salary_total_earnings - salary_total_deductions 
+					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
+					"user_remark" : _(' Employee: {0} ').format(salary_slip.employee_name)
+			
 				})	
 				
-				if len(arr_acc) > 0 : 
-					user_remark = "Salary"
-					journal_entry = frappe.new_doc('Journal Entry')
-					journal_entry.voucher_type = 'Journal Entry'
-					journal_entry.user_remark = _('Payment of {0} from {1} to {2} , Employee: {2} ')\
-						.format(user_remark, self.start_date, self.end_date, salary_slip.employee)
-					journal_entry.company = self.company
-					journal_entry.posting_date = self.posting_date
- 
-					journal_entry.set("accounts",arr_acc)
-					journal_entry.save(ignore_permissions = True)
+			if len(arr_acc) > 0 : 
+				journal_entry = frappe.new_doc('Journal Entry')
+				journal_entry.voucher_type = 'Journal Entry'
+				journal_entry.company = self.company
+				journal_entry.user_remark = user_remark
+				journal_entry.posting_date = self.posting_date
+				journal_entry.title = _('Salary from {0} to {1} ').format( self.start_date, self.end_date)
+				journal_entry.set("accounts",arr_acc)
+				journal_entry.save(ignore_permissions = True)
 
 
 
@@ -387,7 +391,7 @@ class PayrollEntry(Document):
 
 
 
-	def make_payment_entry2(self):
+	def make_payment_entry_old(self):
 		self.check_permission('write')
 
 		
@@ -615,7 +619,7 @@ def submit_salary_slips_for_employees(payroll_entry, salary_slips, publish_progr
 			frappe.publish_progress(count*100/len(salary_slips), title = _("Submitting Salary Slips..."))
 
 	if submitted_ss:
-		payroll_entry.make_accrual_jv_entry()
+		#payroll_entry.make_accrual_jv_entry()
 		frappe.msgprint(_("Salary Slip submitted for period from {0} to {1}")
 			.format(ss_obj.start_date, ss_obj.end_date))
 
