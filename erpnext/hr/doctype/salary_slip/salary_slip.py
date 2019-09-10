@@ -34,7 +34,7 @@ class SalarySlip(TransactionBase):
 	def autoname(self):
 		self.name = make_autoname(self.series)
 
-	def validate(self):
+	def validate(self): 
 		self.status = self.get_status()
 		self.validate_dates()
 		self.check_existing()
@@ -288,9 +288,11 @@ class SalarySlip(TransactionBase):
 			doc.append('earnings', wages_row)
 
 	def calculate_net_pay(self):
+
+		
 		if self.salary_structure:
 			self.calculate_component_amounts()
-
+	
 		self.gross_pay = self.get_component_totals("earnings")
 		self.total_deduction = self.get_component_totals("deductions")
 
@@ -619,10 +621,10 @@ class SalarySlip(TransactionBase):
 			amount, additional_amount = 0, 0
 		elif not row.amount:
 			amount = flt(row.default_amount) + flt(row.additional_amount)
-
+		 
 		# apply rounding
 		if frappe.get_cached_value("Salary Component", row.salary_component, "round_to_the_nearest_integer"):
-			amount, additional_amount = rounded(amount), rounded(additional_amount)
+			amount, additional_amount = rounded(amount,1), rounded(additional_amount,1)
 
 		return amount, additional_amount
 
