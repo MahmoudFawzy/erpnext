@@ -48,7 +48,6 @@ frappe.ui.form.on('Employee', {
 		});
 	},
 	onload: function (frm) {
-		alert(1);
 		frm.set_query("department", function () {
 			return {
 				"filters": {
