@@ -382,9 +382,7 @@ class PayrollEntry(Document):
 						# mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
 						# if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
 						# 	acc_pay = mode_of_payment.accounts[0].default_account
-				
-
-				
+				  
 				arr_acc.append({
 					"account": acc_pay ,
 					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
