@@ -391,11 +391,12 @@ class PayrollEntry(Document):
 		self.check_permission('write')
  
 		cond = self.get_filter_condition()
-		
+		 
 		salary_slip_name_list = frappe.db.sql(""" select t1.name from `tabSalary Slip` t1
-			where t1.docstatus = 1 and start_date >= %s and end_date <= %s %s
-			""" % ('%s', '%s', cond), (self.start_date, self.end_date), as_list = True)
-
+					where t1.docstatus = 1 and start_date >= %s and end_date <= %s %s
+					and payroll_entry = '%s'
+					""" % ('%s', '%s', cond , self.name), (self.start_date, self.end_date), as_list = True)
+		   
 		arr_acc = []
 		user_remark = ""
 	 
@@ -427,7 +428,7 @@ class PayrollEntry(Document):
 						account = salary_component.accounts[0].default_account
 					arr_acc.append({
 						"account": account ,
-						"debit_in_account_currency": sal_detail.amount,
+						"credit_in_account_currency": sal_detail.amount,
 						"reference_type": self.doctype,
 						"reference_name": self.name ,
 						"user_remark" : _(' Employee: {0} \n Deduction: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
@@ -436,24 +437,26 @@ class PayrollEntry(Document):
 				
 				 
 				acc_pay =  self.get_default_payroll_payable_account()
+				
 				for employee_detail in self.employees:
 					if salary_slip.employee == employee_detail.employee : 
 						mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
 						if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
 							acc_pay = mode_of_payment.accounts[0].default_account
-						user_remark += employee_detail.employee_name + "\n"
+						user_remark += salary_slip.employee_name + "\n"
 						
 				arr_acc.append({
 					"account": acc_pay ,
 					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
 					"user_remark" : _('Net Salery Employee: {0} ').format(salary_slip.employee_name) 
 				})
-				
+			
+			#return user_remark
 			if len(arr_acc) > 0 : 
 				journal_entry = frappe.new_doc('Journal Entry')
 				journal_entry.voucher_type = 'Journal Entry'
 				journal_entry.company = self.company
-				journal_entry.user_remark = _('Salary for : \n ').format(user_remark) 
+				journal_entry.user_remark = _('Salary for : \n{0}').format(user_remark) 
 				journal_entry.posting_date = self.posting_date
 				journal_entry.title = _('Salary from {0} to {1} ').format( self.start_date, self.end_date)
 				journal_entry.set("accounts",arr_acc)
