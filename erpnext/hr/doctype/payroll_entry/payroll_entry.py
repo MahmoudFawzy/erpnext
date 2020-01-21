@@ -284,79 +284,6 @@ class PayrollEntry(Document):
 
 		return jv_name
 
-	def make_payment_entry(self):
-		self.check_permission('write')
- 
-		cond = self.get_filter_condition()
-		
-		salary_slip_name_list = frappe.db.sql(""" select t1.name from `tabSalary Slip` t1
-			where t1.docstatus = 1 and start_date >= %s and end_date <= %s %s
-			""" % ('%s', '%s', cond), (self.start_date, self.end_date), as_list = True)
-
-		arr_acc = []
-		user_remark = ""
-	 
-		if salary_slip_name_list and len(salary_slip_name_list) > 0: 
-			for salary_slip_name in salary_slip_name_list:
-				salary_slip = frappe.get_doc("Salary Slip", salary_slip_name[0])
-				salary_total_earnings =  0 
-				salary_total_deductions =  0 
-
-				for sal_detail in salary_slip.earnings:  
-					salary_component = frappe.get_doc("Salary Component", sal_detail.salary_component)
-					account = self.payment_account
-					if len(salary_component.accounts) > 0 :
-						account = salary_component.accounts[0].default_account
-					arr_acc.append({
-						"account": account ,
-						"debit_in_account_currency": sal_detail.amount,
-						"reference_type": self.doctype,
-						"reference_name": self.name ,
-						"user_remark" : _(' Employee: {0} \n Earning: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
-					})
-					salary_total_earnings +=  sal_detail.amount 
-
-
-				for sal_detail in salary_slip.deductions:
-					salary_component = frappe.get_doc("Salary Component", sal_detail.salary_component)
-					account = self.payment_account
-					if len(salary_component.accounts) > 0 :
-						account = salary_component.accounts[0].default_account
-					arr_acc.append({
-						"account": account ,
-						"debit_in_account_currency": sal_detail.amount,
-						"reference_type": self.doctype,
-						"reference_name": self.name ,
-						"user_remark" : _(' Employee: {0} \n Deduction: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
-					})
-					salary_total_deductions +=  sal_detail.amount 
-				
-				 
-				acc_pay =  self.get_default_payroll_payable_account()
-				for employee_detail in self.employees:
-					if salary_slip.employee == employee_detail.employee : 
-						mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
-						if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
-							acc_pay = mode_of_payment.accounts[0].default_account
-						user_remark += employee_detail.employee_name + "\n"
-						
-				arr_acc.append({
-					"account": acc_pay ,
-					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
-					"user_remark" : _('Net Salery Employee: {0} ').format(salary_slip.employee_name) 
-				})
-				
-			if len(arr_acc) > 0 : 
-				journal_entry = frappe.new_doc('Journal Entry')
-				journal_entry.voucher_type = 'Journal Entry'
-				journal_entry.company = self.company
-				journal_entry.user_remark = _('Salary for : \n ').format(user_remark) 
-				journal_entry.posting_date = self.posting_date
-				journal_entry.title = _('Salary from {0} to {1} ').format( self.start_date, self.end_date)
-				journal_entry.set("accounts",arr_acc)
-				journal_entry.save(ignore_permissions = True)
-
-
 	def create_journal_entry(self, je_payment_amount, user_remark):
  
 		default_payroll_payable_account = self.get_default_payroll_payable_account()
@@ -384,9 +311,7 @@ class PayrollEntry(Document):
 			}
 		])
 		journal_entry.save(ignore_permissions = True)
-
-
-
+ 
 	def make_payment_entry(self):
 		self.check_permission('write')
  
@@ -400,6 +325,7 @@ class PayrollEntry(Document):
 		arr_acc = []
 		user_remark = ""
 	 
+	 	#return salary_slip_name_list
 		if salary_slip_name_list and len(salary_slip_name_list) > 0: 
 			for salary_slip_name in salary_slip_name_list:
 				salary_slip = frappe.get_doc("Salary Slip", salary_slip_name[0])
@@ -419,8 +345,7 @@ class PayrollEntry(Document):
 						"user_remark" : _(' Employee: {0} \n Earning: {1}  ').format(salary_slip.employee_name,sal_detail.salary_component)
 					})
 					salary_total_earnings +=  sal_detail.amount 
-
-
+ 
 				for sal_detail in salary_slip.deductions:
 					salary_component = frappe.get_doc("Salary Component", sal_detail.salary_component)
 					account = self.payment_account
@@ -435,23 +360,39 @@ class PayrollEntry(Document):
 					})
 					salary_total_deductions +=  sal_detail.amount 
 				
+				user_remark += salary_slip.employee_name + "\n"
 				 
 				acc_pay =  self.get_default_payroll_payable_account()
+
+
+				emp_info = [e for e in self.employees if e.employee == salary_slip.employee]
+
+				if len(emp_info) > 0 : 
+					employee_detail = emp_info[0] 
+				else:
+					employee_detail = frappe.get_doc("Employee", salary_slip.employee)
+					
 				
-				for employee_detail in self.employees:
-					if salary_slip.employee == employee_detail.employee : 
-						mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
-						if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
-							acc_pay = mode_of_payment.accounts[0].default_account
-						user_remark += salary_slip.employee_name + "\n"
-						
+				mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
+				if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
+					acc_pay = mode_of_payment.accounts[0].default_account
+
+				# for employee_detail in self.employees:
+				# 	if salary_slip.employee == employee_detail.employee : 
+						# mode_of_payment = frappe.get_doc("Mode of Payment", employee_detail.salary_by_mode)
+						# if mode_of_payment and  len(mode_of_payment.accounts) > 0 :
+						# 	acc_pay = mode_of_payment.accounts[0].default_account
+				
+
+				
 				arr_acc.append({
 					"account": acc_pay ,
 					"credit_in_account_currency": salary_total_earnings - salary_total_deductions ,
 					"user_remark" : _('Net Salery Employee: {0} ').format(salary_slip.employee_name) 
 				})
 			
-			#return user_remark
+			 
+			#return arr_acc
 			if len(arr_acc) > 0 : 
 				journal_entry = frappe.new_doc('Journal Entry')
 				journal_entry.voucher_type = 'Journal Entry'
