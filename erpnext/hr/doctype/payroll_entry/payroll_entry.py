@@ -126,8 +126,10 @@ class PayrollEntry(Document):
 		ss_list = frappe.db.sql("""
 			select t1.name, t1.salary_structure from `tabSalary Slip` t1
 			where t1.docstatus = %s and t1.start_date >= %s and t1.end_date <= %s
-			and (t1.journal_entry is null or t1.journal_entry = "") and ifnull(salary_slip_based_on_timesheet,0) = %s %s
-		""" % ('%s', '%s', '%s','%s', cond), (ss_status, self.start_date, self.end_date, self.salary_slip_based_on_timesheet), as_dict=as_dict)
+			and (t1.journal_entry is null or t1.journal_entry = "") 
+			and ifnull(salary_slip_based_on_timesheet,0) = %s %s
+			and payroll_entry = '%s'
+		""" % ('%s', '%s', '%s','%s', cond , self.name), (ss_status, self.start_date, self.end_date, self.salary_slip_based_on_timesheet), as_dict=as_dict)
 		return ss_list
 
 	def submit_salary_slips(self):
