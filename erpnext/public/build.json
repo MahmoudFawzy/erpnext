@@ -16,6 +16,9 @@
 	"js/marketplace.min.js": [
 		"public/js/hub/marketplace.js"
 	],
+	"js/hijri-date-latest.min.js": [
+		"public/js/hijri-date-latest.min.js"
+	],
 	"js/erpnext.min.js": [
 		"public/js/conf.js",
 		"public/js/utils.js",

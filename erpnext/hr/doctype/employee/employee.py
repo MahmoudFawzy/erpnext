@@ -57,7 +57,7 @@ class Employee(NestedSet):
 					"Employee", self.name, existing_user_id)
 
 	def set_employee_name(self):
-		self.employee_name = ' '.join(filter(lambda x: x, [self.first_name, self.middle_name, self.last_name]))
+		self.employee_name = ' '.join(filter(lambda x: x, [self.first_name, self.middle_name, self.last_name, self.grand_name]))
 
 	def validate_user_details(self):
 		data = frappe.db.get_value('User',

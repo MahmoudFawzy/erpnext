@@ -48,6 +48,10 @@ frappe.ui.form.on('Employee', {
 		});
 	},
 	onload: function (frm) {
+		frappe.require([
+			"assets/erpnext/js/hijri-date-latest.min.js"
+		]);
+
 		frm.set_query("department", function () {
 			return {
 				"filters": {
@@ -93,6 +97,23 @@ frappe.ui.form.on('Employee', {
 				frm.set_value("user_id", r.message)
 			}
 		});
-	}
+	},
+	// date_of_birth: function (frm) {
+	// 	let mom = moment(frm.doc.date_of_birth, 'YYYY-MM-DD')
+	// 	if (mom.isValid()) {
+	// 		frm.set_value("date_of_birth_hijri", mom.locale('en').format('iD/iM/iYYYY'), () => { })
+	// 	}
+	// },
+	// date_of_birth_hijri: function (frm) {
+	// 	//debugger
+	// 	let mom = moment(frm.doc.date_of_birth_hijri, 'iD/iM/iYYYY');
+	// 	console.log(mom)
+	// 	if (mom.isValid()) {
+	// 		let d = mom.format('YYYY-MM-DD');
+	// 		console.log(d)
+	// 		frm.set_value("date_of_birth", d)
+	// 		//	frm.save();
+	// 	}
+	// }
 });
 cur_frm.cscript = new erpnext.hr.EmployeeController({ frm: cur_frm });
