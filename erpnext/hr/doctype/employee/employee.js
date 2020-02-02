@@ -35,7 +35,6 @@ erpnext.hr.EmployeeController = frappe.ui.form.Controller.extend({
 			}[this.frm.doc.salutation]);
 		}
 	},
-
 });
 frappe.ui.form.on('Employee', {
 	setup: function (frm) {
@@ -104,16 +103,53 @@ frappe.ui.form.on('Employee', {
 	// 		frm.set_value("date_of_birth_hijri", mom.locale('en').format('iD/iM/iYYYY'), () => { })
 	// 	}
 	// },
-	// date_of_birth_hijri: function (frm) {
-	// 	//debugger
-	// 	let mom = moment(frm.doc.date_of_birth_hijri, 'iD/iM/iYYYY');
-	// 	console.log(mom)
-	// 	if (mom.isValid()) {
-	// 		let d = mom.format('YYYY-MM-DD');
-	// 		console.log(d)
-	// 		frm.set_value("date_of_birth", d)
-	// 		//	frm.save();
-	// 	}
-	// }
+	date_of_birth_hijri: function (frm) {
+		const h_date = new HijriDate(frm.doc.date_of_birth_hijri, "yyyy/mm/dd");
+		var mom = moment(h_date.toGregorian());
+		if (mom.isValid()) {
+			frm.set_value("date_of_birth", mom.format('YYYY-MM-DD'));
+		}
+	},
+	residency_renewal_hijri: function (frm) {
+		const h_date = new HijriDate(frm.doc.residency_renewal_hijri, "yyyy/mm/dd");
+		var mom = moment(h_date.toGregorian());
+		if (mom.isValid()) {
+			frm.set_value("residency_renewal", mom.format('YYYY-MM-DD'));
+		}
+	},
+	the_date_of_issue_visa_hijri: function (frm) {
+		const h_date = new HijriDate(frm.doc.the_date_of_issue_visa_hijri, "yyyy/mm/dd");
+		var mom = moment(h_date.toGregorian());
+		if (mom.isValid()) {
+			frm.set_value("the_date_of_issue_visa", mom.format('YYYY-MM-DD'));
+		}
+	},
+	national_id_expiry_date_hijri: function (frm) {
+		const h_date = new HijriDate(frm.doc.national_id_expiry_date_hijri, "yyyy/mm/dd");
+		var mom = moment(h_date.toGregorian());
+		if (mom.isValid()) {
+			frm.set_value("national_id_expiry_date", mom.format('YYYY-MM-DD'));
+		}
+	},
+	contract_years: function (frm) {
+		frm.events.calc_contract_end(frm)
+	},
+	contract_monthes: function (frm) {
+		frm.events.calc_contract_end(frm)
+	},
+	calc_contract_end: function (frm) {
+		var mom = moment(frm.doc.date_of_joining, "YYYY-MM-DD");
+
+		if (mom.isValid()) {
+			if (frm.doc.contract_years) {
+				mom.add(parseInt(frm.doc.contract_years), 'years');
+			}
+			if (frm.doc.contract_monthes) {
+				mom.add(parseInt(frm.doc.contract_monthes), 'months');
+			}
+
+			frm.set_value("contract_end_date", mom.format('YYYY-MM-DD'));
+		}
+	}
 });
 cur_frm.cscript = new erpnext.hr.EmployeeController({ frm: cur_frm });
