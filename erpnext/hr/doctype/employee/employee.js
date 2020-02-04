@@ -1,5 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
+//	https://abdennour.github.io/hijri-date/
+
 
 frappe.provide("erpnext.hr");
 erpnext.hr.EmployeeController = frappe.ui.form.Controller.extend({
@@ -117,11 +119,25 @@ frappe.ui.form.on('Employee', {
 			frm.set_value("residency_renewal", mom.format('YYYY-MM-DD'));
 		}
 	},
+	residency_update: function (frm) {
+
+		const h_date = new HijriDate(frm.doc.residency_issue_date_hajiri, "yyyy/mm/dd");
+		var mom = moment(h_date.toGregorian());
+		if (mom.isValid()) {
+			frm.set_value("residency_renewal_hijri", mom.add(12, 'M')._d.toHijri().format('yyyy-mm-dd'));
+			frm.set_value("residency_renewal", mom.add(12, 'M').format('YYYY-MM-DD'));
+		}
+	},
 	the_date_of_issue_visa_hijri: function (frm) {
 		const h_date = new HijriDate(frm.doc.the_date_of_issue_visa_hijri, "yyyy/mm/dd");
 		var mom = moment(h_date.toGregorian());
 		if (mom.isValid()) {
 			frm.set_value("the_date_of_issue_visa", mom.format('YYYY-MM-DD'));
+			let dd = mom.add(3, 'M')._d.toHijri();
+			let dd_str = dd.format('yyyy-mm-dd');
+			frm.set_value("residency_issue_date_hajiri", dd_str);
+			frm.set_value("residency_renewal_hijri", dd_str);
+			frm.set_value("residency_renewal", mom.add(3, 'M').format('YYYY-MM-DD'));
 		}
 	},
 	national_id_expiry_date_hijri: function (frm) {
@@ -130,6 +146,9 @@ frappe.ui.form.on('Employee', {
 		if (mom.isValid()) {
 			frm.set_value("national_id_expiry_date", mom.format('YYYY-MM-DD'));
 		}
+	},
+	date_of_joining: function (frm) {
+		frm.events.calc_contract_end(frm)
 	},
 	contract_years: function (frm) {
 		frm.events.calc_contract_end(frm)
