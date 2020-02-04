@@ -120,7 +120,6 @@ frappe.ui.form.on('Employee', {
 		}
 	},
 	residency_update: function (frm) {
-
 		const h_date = new HijriDate(frm.doc.residency_issue_date_hajiri, "yyyy/mm/dd");
 		var mom = moment(h_date.toGregorian());
 		if (mom.isValid()) {
